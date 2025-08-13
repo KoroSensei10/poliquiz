@@ -1,14 +1,16 @@
-<script>
+<script lang="ts">
+    import { getPosts } from "$lib/personnage.remote";
+
 
     let randomNumber = $state(Math.floor(Math.random() * 100) + 1);
     let userGuess = $state(0);
 
-    function resetGame() {
+    function resetGame(): void {
         randomNumber = Math.floor(Math.random() * 100) + 1;
         userGuess = 0;
     }
 
-    function checkGuess() {
+    function checkGuess(): void {
         if (userGuess === randomNumber) {
             alert("Congratulations! You guessed the correct number.");
         } else {
@@ -28,3 +30,20 @@
     
 </form>
 <button onclick={resetGame}>Reset</button>
+
+<svelte:boundary>
+    {#snippet pending()}
+        <p>Guess the number between 1 and 100!</p>
+    {/snippet}
+    {#snippet failed(error, reset)}
+        <p>server error ?</p>
+    {/snippet}
+    <ul>
+        {#each await getPosts() as post}
+        <div>
+            <h2>Titre: {post.title}</h2>
+            <p>Slug: {post.slug}</p>
+        </div>
+        {/each}
+    </ul>
+</svelte:boundary>
