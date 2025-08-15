@@ -1,4 +1,4 @@
-export function load({ params }) {
+export function load({ _params }) {
     const randomId = Math.floor(Math.random() * 100);
 
     return {
