@@ -1,49 +1,37 @@
 <script lang="ts">
-    import { getPosts } from "$lib/personnage.remote";
+    import { Ordering } from '../types/ordering.js';
+    import { userGuessCommand } from './guess.remote.js';
 
+    let {
+        data
+    } = $props();
 
-    let randomNumber = $state(Math.floor(Math.random() * 100) + 1);
-    let userGuess = $state(0);
-
-    function resetGame(): void {
-        randomNumber = Math.floor(Math.random() * 100) + 1;
-        userGuess = 0;
-    }
-
-    function checkGuess(): void {
-        if (userGuess === randomNumber) {
-            alert("Congratulations! You guessed the correct number.");
-        } else {
-            alert("Sorry, try again!");
-        }
-    }
-
+    let userGuess: number | null = $state(0);
+    let response: string | null = $state(null);
+    
 </script>
 
 <div>
-    <span>The random number is: <strong>{randomNumber}</strong></span>
+    <span>
+        Random id: {data.randomId} (response is {99 - data.randomId})
+    </span>
+    <form action="" onsubmit={async (e) => {
+        e.preventDefault();
+        if (!userGuess) return; // add feeback
+        try {
+                const res = await userGuessCommand({targetId: data.randomId, userInput: userGuess});
+                if (res === Ordering.EQUAL) response = "GG!";
+                if (res === Ordering.LESS) response = "Too low !"
+                if (res === Ordering.GREATER) response = "Too high !"
+            } catch (e) {
+                response = "there is a woopsie on the server"
+                console.log(e);
+                
+            }
+        }}>
+        <input bind:value={userGuess} type="number" min="0" max="99" placeholder="Your guess" />
+    </form>
+    <span class="border">
+        {response}
+    </span>
 </div>
-
-<form onsubmit={checkGuess}>
-    <input type="number" bind:value={userGuess} min="0" max="100">
-    <button type="submit">Submit Guess</button>
-    
-</form>
-<button onclick={resetGame}>Reset</button>
-
-<svelte:boundary>
-    {#snippet pending()}
-        <p>Guess the number between 1 and 100!</p>
-    {/snippet}
-    {#snippet failed(error, reset)}
-        <p>server error ?</p>
-    {/snippet}
-    <ul>
-        {#each await getPosts() as post}
-        <div>
-            <h2>Titre: {post.title}</h2>
-            <p>Slug: {post.slug}</p>
-        </div>
-        {/each}
-    </ul>
-</svelte:boundary>
