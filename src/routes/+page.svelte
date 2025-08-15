@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { Ordering } from '../types/ordering.js';
-    import { userGuessCommand } from './guess.remote.js';
+    import { Ordering } from '../types/ordering';
+    import { userGuessCommand } from './guess.remote';
 
     let {
         data
