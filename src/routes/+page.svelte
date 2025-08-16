@@ -2,12 +2,14 @@
     import { untrack } from "svelte";
     import { Ordering } from "../types/ordering";
     import { userGuessCommand } from "./guess.remote";
+    import { fade } from "svelte/transition";
 
     let { data } = $props();
 
     let userGuess: string | null = $state(null);
     let mainInput: HTMLInputElement | null = $state(null);
     let submitTime: number | null = $state(null); // reactive value of "when" the user press enter
+    let serverResponseTime: number | null = $state(null)
 
     let serverResponse: number | string | null = $state(null);
     let win = $derived(serverResponse === Ordering.EQUAL);
@@ -30,8 +32,9 @@
                 targetId: data.randomId,
                 userInput: userGuess,
             });
+            serverResponseTime = Date.now();
         } catch (e) {
-            serverResponse = "whoopsie 500"
+            serverResponse = "whoopsie 500";
             console.log(e);
         }
     }
@@ -49,8 +52,9 @@
 </script>
 
 {#key submitTime}
-    <div class="z-30 uniqPulse fixed w-full h-full border border-white/20 rounded-2xl pointer-events-none">
-    </div>
+    <div
+        class="z-30 uniqPulse fixed w-full h-full border border-white/20 rounded-2xl pointer-events-none"
+    ></div>
 {/key}
 
 <div
@@ -59,8 +63,10 @@
     {win ? 'bg-green-800' : 'bg-gray-900'}"
 >
     <span
-        class="absolute z-0 text-[20rem] -rotate-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-            {win ? "text-white" : 'text-red-500'}
+        in:fade={{ duration: 100 }}
+        style="rotate: {((serverResponseTime ?? 12) % 24) - 12}deg;"
+        class="absolute z-0 text-[20rem] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+        {win ? 'text-white' : 'text-red-500'}
         "
     >
         {serverResponseFormatted}
@@ -68,30 +74,35 @@
     <div
         class="relative z-10 w-60 h-80 grid grid-rows-[1fr_4rem] items-center
             rounded-2xl shadow-xl overflow-hidden
-            {win ? 'not-focus-within:bg-transparent not-focus-within:text-green-800 backdrop-blur-xs' : ''}
-            {submitTime && !win ? 'focus-within:bg-transparent bg-gray-700 backdrop-blur-md' : ''}
+            {win
+            ? 'not-focus-within:bg-transparent not-focus-within:text-green-800 backdrop-blur-xs'
+            : ''}
+            {submitTime && !win
+            ? 'focus-within:bg-transparent bg-gray-700 backdrop-blur-md'
+            : ''}
             transition-all duration-100
             bg-green-900
         "
     >
-        <!-- {#key userGuess}
-            <div class=" uniqPulse opacity-0 absolute bottom-0 right-0 w-full border-b border-white/40">
-            </div>
-        {/key} -->
         {#key submitTime}
-            <div class=" uniqPulse opacity-0 absolute bottom-0 right-0 w-full border-b border-white">
-            </div>
+            <div
+                class=" uniqPulse opacity-0 absolute bottom-0 right-0 w-full border-b border-white"
+            ></div>
         {/key}
         <div
             class="row-span-1 w-full flex justify-center items-center overflow-hidden
-                {win ? '' : ''}
+            {win ? '' : ''}
             "
         >
             <span
-                class="text-[16rem] rotate-6
-                {win ? '' : ''}
-            ">{data.randomId}</span
-            >
+                in:fade={{ duration: 100 }}
+                style="rotate: {((Date.now() ?? 12) % 24) - 12}deg;"
+                class="text-[16rem] transition-all duration-100
+                    {win ? '' : ''}
+                "
+                >
+                {data.randomId}
+            </span>
         </div>
         <form
             action=""
@@ -116,13 +127,19 @@
 
 <style>
     @keyframes fadeOut {
-        0% { opacity: 80%; }
-        10% { opacity: 100%;}
-        100% { opacity: 0% }
+        0% {
+            opacity: 80%;
+        }
+        10% {
+            opacity: 100%;
+        }
+        100% {
+            opacity: 0%;
+        }
     }
 
     .uniqPulse {
         opacity: 0%;
-        animation: .3s fadeOut ease-out;
+        animation: 0.3s fadeOut ease-out;
     }
 </style>
